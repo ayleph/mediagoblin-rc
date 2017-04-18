@@ -1,0 +1,44 @@
+#!/bin/sh
+
+# $FreeBSD$
+#
+# PROVIDE: mediagoblin_celeryd
+# REQUIRE: LOGIN
+# KEYWORD: shutdown
+#
+# Add the following lines to /etc/rc.conf to enable mediagoblin_celeryd:
+#
+# mediagoblin_celeryd_enable="YES"
+
+. /etc/rc.subr
+
+name=mediagoblin_celeryd
+rcvar=mediagoblin_celeryd_enable
+load_rc_config ${name}
+
+# Set defaults
+: ${mediagoblin_celeryd_enable:="NO"}
+: ${mediagoblin_celeryd_user:="mediagoblin"}
+
+pidfile="/var/run/mediagoblin/celery.pid"
+logfile="/var/log/mediagoblin/celery.log"
+loglevel="DEBUG"
+basedir="/usr/local/srv/mediagoblin/mediagoblin"
+
+command="${basedir}/bin/celery"
+mediagoblin_celeryd_flags="--config=mediagoblin.init.celery.from_celery --workdir=${basedir} --pidfile=${pidfile} --logfile=${logfile} --loglevel=${loglevel} --uid=${mediagoblin_celeryd_user}"
+
+start_premcd="${name}_prestart"
+start_cmd="${name}_start"
+stop_cmd="${name}_stop"
+
+mediagoblin_celeryd_start() {
+    export PATH=$PATH:/usr/local/sbin:/usr/local/bin
+    ${command} multi start mediagoblin ${mediagoblin_celeryd_flags}
+}
+
+mediagoblin_celeryd_stop() {
+    ${command} multi stop mediagoblin ${mediagoblin_celeryd_flags}
+}
+
+run_rc_command "$1"

@@ -1,0 +1,40 @@
+#!/bin/sh
+
+# $FreeBSD$
+#
+# PROVIDE: mediagoblin
+# REQUIRE: LOGIN postgresl
+# KEYWORD: shutdown
+#
+# Add the following lines to /etc/rc.conf to enable mediagoblin:
+#
+# mediagoblin_enable="YES"
+
+. /etc/rc.subr
+
+name=mediagoblin
+rcvar=mediagoblin_enable
+load_rc_config ${name}
+
+# Set defaults
+: ${mediagoblin_enable:="NO"}
+: ${mediagoblin_user:="mediagoblin"}
+: ${mediagoblin_pasterconfigfile:=/usr/local/srv/mediagoblin/mediagoblin/paste.ini}
+
+pidfile="/var/run/mediagoblin/mediagoblin.pid"
+logfile="/var/log/mediagoblin/mediagoblin.log"
+required_files="${mediagoblin_pasterconfigfile}"
+basedir="/usr/local/srv/mediagoblin/mediagoblin"
+
+command="${basedir}/bin/paster"
+command_interpreter="${basedir}/bin/python"
+mediagoblin_flags="serve ${mediagoblin_pasterconfigfile} --pid-file=${pidfile} --log-file=${logfile} --daemon --server-name=fcgi fcgi_host=127.0.0.1 fcgi_port=26543"
+
+start_precmd="${name}_precmd"
+
+mediagoblin_precmd() {
+    export PYTHON_EGG_CACHE=/usr/local/srv/mediagoblin/.cache/Python-Eggs
+    export CELERY_ALWAYS_EAGER=false
+}
+
+run_rc_command "$1"
